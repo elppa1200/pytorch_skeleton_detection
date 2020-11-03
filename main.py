@@ -21,15 +21,16 @@ model.eval()
 
 
 '''
-#사진 입력부
+#Photo
 img = cv2.imread('imgs/example1.jpg', cv2.IMREAD_COLOR)
 #img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 img = cv2.resize(img, dsize=(690,545), interpolation=cv2.INTER_AREA)
 '''
 
 
-#영상 입력부
+
 '''
+#Video
 while(1):
     cap = cv2.VideoCapture(0)
     if cap.isOpen():
@@ -60,14 +61,14 @@ while(cap.isOpened()):
 
 
 
-    input_frame = trf(img) #이미지 텐서변환
+    input_frame = trf(img) 
 
-    out = model([input_frame])[0] #모델에 넣고 돌리기
+    out = model([input_frame])[0] 
 
     for box, score, keypoints in zip(out['boxes'], out['scores'], out['keypoints']):
-        score = score.detach().numpy() #있을 확률 배열에서 떼오기
+        score = score.detach().numpy() 
 
-        if score < THRESHOLD: #0.97로 설정해둔 거 못넘으면 그냥 넘김
+        if score < THRESHOLD: 
             continue
 
         box = box.detach().numpy()
@@ -76,7 +77,7 @@ while(cap.isOpened()):
         neck = 0.5 * (keypoints[5]+keypoints[6]) 
         keypoints = np.append(keypoints, neck)
 
-    #2020 10 28 튜플 해결!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 해냇다 이 시발럼들아
+
 
     #body   
         # lsh - neck

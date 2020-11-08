@@ -3,105 +3,64 @@ import torchvision
 from torchvision import models
 import torchvision.transforms as T
 import cv2
-
 import numpy as np
-from PIL import Image
-import matplotlib.pyplot as plt
-from matplotlib.path import Path
-import matplotlib.patches as patches
+
 
 trf = T.Compose([
     T.ToTensor()
 ])
 
-THRESHOLD = 0.97
+THRESHOLD = 0.95 #Accuracy
 neck = np.array([])
 model = models.detection.keypointrcnn_resnet50_fpn(pretrained=True)
 model.eval()
 
+cap = cv2.VideoCapture(0) #this will be usually your internal Camera
+#cap = cv2.VideoCapture(1) #Your other Camera
 
-'''
-#Photo
-img = cv2.imread('imgs/example1.jpg', cv2.IMREAD_COLOR)
-#img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-img = cv2.resize(img, dsize=(690,545), interpolation=cv2.INTER_AREA)
-'''
+while cap.isOpened():
 
+    success, img = cap.read()
+    input_frame = trf(img)
+    out = model([input_frame])[0]
 
-
-'''
-#Video
-while(1):
-    cap = cv2.VideoCapture(0)
-    if cap.isOpen():
-    	print('width: {}, height : {}'.format(cap.get(3), cap.get(4))
-    
-    while True:
-    	ret, fram = cap.read()
-    
-    	if ret:
-    		gray = cv2.cvtColor(fram, cv2.COLOR_BGR2GRAY)
-    		cv2.imshow('video', gray)
-    		k == cv2.waitKey(1) & 0xFF
-    		if k == 27: 
-    			break
-    	else:
-    		print('error')
-'''
-
-
-cap = cv2.VideoCapture('imgs/02.mp4')
-
-while(cap.isOpened()):
-
-    ret, img = cap.read()
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    cv2.imshow('frame',gray)
-
-
-
-
-    input_frame = trf(img) 
-
-    out = model([input_frame])[0] 
-
-    for box, score, keypoints in zip(out['boxes'], out['scores'], out['keypoints']):
-        score = score.detach().numpy() 
-
+    for score, keypoints in zip(out['scores'], out['keypoints']):
+        score = score.detach().numpy()
         if score < THRESHOLD: 
             continue
 
         box = box.detach().numpy()
         keypoints = keypoints.detach().numpy()[:, :2]
 
-        neck = 0.5 * (keypoints[5]+keypoints[6]) 
+        neck = 0.5 * (keypoints[5]+keypoints[6]) #added neck keypoint
         keypoints = np.append(keypoints, neck)
 
 
 
     #body   
-        # lsh - neck
+        # left shoulder - neck
         cv2.line(img,  tuple(keypoints[10:12]), tuple(keypoints[34:36]), (0,255,0), 2)
-        # rsh - neck
+        # right shoulder - neck
         cv2.line(img,  tuple(keypoints[12:14]), tuple(keypoints[34:36]), (0,255,0), 2)
         #neck - nose
         cv2.line(img,  tuple(keypoints[0:2]), tuple(keypoints[34:36]), (0,255,0), 2)
-        # left body
+        #left body
         cv2.line(img,  tuple(keypoints[10:12]), tuple(keypoints[22:24]), (0,255,0), 2)
-        # right body
+        #right body
         cv2.line(img,  tuple(keypoints[12:14]), tuple(keypoints[24:26]), (0,255,0), 2)
-        # hip
+        #hip
         cv2.line(img,  tuple(keypoints[22:24]), tuple(keypoints[24:26]), (0,255,0), 2)
 
     #arm
-        # left arm_down
-        cv2.line(img,  tuple(keypoints[14:16]), tuple(keypoints[18:20]), (0,255,0), 2)
-        # right arm_up
-        cv2.line(img,  tuple(keypoints[12:14]), tuple(keypoints[16:18]), (0,255,0), 2)
-        # right arm_down
-        cv2.line(img,  tuple(keypoints[16:18]), tuple(keypoints[20:22]), (0,255,0), 2)
-        # left arm_up
+        #left arm_up
         cv2.line(img,  tuple(keypoints[10:12]), tuple(keypoints[14:16]), (0,255,0), 2)
+        #left arm_down
+        cv2.line(img,  tuple(keypoints[14:16]), tuple(keypoints[18:20]), (0,255,0), 2)
+        #right arm_up
+        cv2.line(img,  tuple(keypoints[12:14]), tuple(keypoints[16:18]), (0,255,0), 2)
+        #right arm_down
+        cv2.line(img,  tuple(keypoints[16:18]), tuple(keypoints[20:22]), (0,255,0), 2)
+        
     
     #leg
         # left leg_up
@@ -114,13 +73,39 @@ while(cap.isOpened()):
         cv2.line(img,  tuple(keypoints[28:30]), tuple(keypoints[32:34]), (0,255,0), 2)
 
     #head 
-        #leye - nose
+        #left eye - nose
         cv2.line(img,  tuple(keypoints[0:2]), tuple(keypoints[2:4]), (0,255,0), 2)
-        #reye - nose
+        #right eye - nose
         cv2.line(img,  tuple(keypoints[0:2]), tuple(keypoints[4:6]), (0,255,0), 2)
-        #lear - leye
+        #left ear - leye
         cv2.line(img,  tuple(keypoints[2:4]), tuple(keypoints[6:8]), (0,255,0), 2)
-        #reye - reye
+        #right eye - reye
         cv2.line(img,  tuple(keypoints[4:6]), tuple(keypoints[8:10]), (0,255,0), 2)
 
     cap.release()
+    
+    
+    
+'''
+Index
+
+keypointindex   'bodyname' , tupleindex-x, tupleindex-y
+
+0   'nose',0,1
+1   'left_eye',2,3
+2   'right_eye',4,5
+3   'left_ear',6,7
+4   'right_ear',8,9
+5    'left_shoulder',10,11
+6     'right_shoulder',12,13
+7     'left_elbow',14,15
+8     'right_elbow',16,17
+9     'left_wrist',18,19
+10    'right_wrist',20,21
+11    'left_hip',22,23
+12    'right_hip',24,25
+13    'left_knee',26,27
+14    'right_knee',28,29
+15    'left_ankle',30,31
+16    'right_ankle',32,33
+17    'neck',34,35

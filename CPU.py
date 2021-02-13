@@ -37,18 +37,8 @@ while cap.isOpened():
             continue
 
         neck = 0.5 * (keypoints[5]+keypoints[6]) 
-        detect = 0.5 * (keypoints[0] + neck[0:2])
         keypoints = np.append(keypoints, neck)
-        ldtx = detect[0]- keypoints[18]
-        ldty = detect[1] - keypoints[19]
-        rdtx = detect[0] - keypoints[20]
-        rdty = detect[1] - keypoints[21]
 
-        
-        if b < ldtx < a and b < ldty < a :
-            cv2.rectangle(img, tuple(box[0:2]), tuple(box[2:4]), (0,0,255), 2)
-        elif b < rdtx < a and b < rdty < a :
-            cv2.rectangle(img, tuple(box[0:2]), tuple(box[2:4]), (0,0,255), 2)
     
         #body   
         # lsh - neck
